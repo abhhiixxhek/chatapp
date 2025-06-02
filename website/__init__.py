@@ -4,7 +4,7 @@ from flask_login import UserMixin, LoginManager
 from werkzeug.security import generate_password_hash, check_password_hash
 import random
 import string
-
+import cloudinary
 import os
 # init SQLAlchemy so we can use it later in our models
 db = SQLAlchemy()
@@ -95,6 +95,15 @@ def create_app():
     app.config['SECRET_KEY'] = 'xyzxyz xyzxyz xyzxyz'
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
     # app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///:memory:"
+    app.config['CLOUDINARY_CLOUD_NAME'] = os.environ.get('CLOUDINARY_CLOUD_NAME')
+    app.config['CLOUDINARY_API_KEY'] = os.environ.get('CLOUDINARY_API_KEY')
+    app.config['CLOUDINARY_API_SECRET'] = os.environ.get('CLOUDINARY_API_SECRET')
+
+    cloudinary.config(
+        cloud_name=app.config['CLOUDINARY_CLOUD_NAME'],
+        api_key=app.config['CLOUDINARY_API_KEY'],
+        api_secret=app.config['CLOUDINARY_API_SECRET']
+    )
 
     with app.app_context():
         # from .models import user

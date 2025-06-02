@@ -3,16 +3,8 @@ views = Blueprint('views', __name__)
 from flask_login import login_user, logout_user, login_required, current_user
 from flask_socketio import SocketIO, send
 from .__init__ import User, Workspace,db, Channel,Chats
-import cloudinary as Cloud
 from cloudinary import uploader
 from cloudinary.utils import cloudinary_url
-
-# Add your cloudinary credentials here!
-Cloud.config( 
-  cloud_name = "abhishek", 
-  api_key = "628843668497854", 
-  api_secret = "7CWVUzLH3v8dROKrkHtRCSFIndQ" 
-)
 
 @views.route('/')
 def landing_page():
@@ -36,7 +28,7 @@ def uploadImage():
         print(thumbnail_url1)
         c = Chats()
         c.message = thumbnail_url1
-        c.username = request.form.get('imageusername')
+        c.username = current_user.name # Standardize to current_user
         c.wid = request.form.get('imagewid')
         c.channel_id = request.form.get('imagecid')
         c.image = 1
@@ -57,17 +49,16 @@ def chat():
     Workspaces = []
     ChannelCount = 0
     count = 0
-    if session.get("USERNAME") is None:
-        username = current_user.name
-    else:
-        username = session['username']
+    # Prefer current_user.name as route is @login_required
+    username = current_user.name
     user = User.query.filter_by(name = username).first()
     if user.workspace_list:
-        wlist = user.workspace_list.split()
-        wlist = [int(i) for i in wlist]
+        wlist_str = user.workspace_list.split() # Get string IDs
+        # Filter out empty strings that might result from multiple spaces, then convert to int
+        wlist = [int(i) for i in wlist_str if i]
         count = len(wlist)
-        for w in wlist:
-            Workspaces.append(Workspace.query.filter_by(id = w).first())
+        for w_id in wlist: # Iterate over integer ids
+            Workspaces.append(Workspace.query.filter_by(id = w_id).first())
     print(username)
     chatscount = 0
     if len(Workspaces) > 0:

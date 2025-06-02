@@ -2,18 +2,10 @@ from flask import Blueprint, render_template, request, redirect, url_for, sessio
 from flask_login import login_user, logout_user, login_required
 from . import db
 from .__init__ import User
-import cloudinary as Cloud
 from cloudinary import uploader
 from cloudinary.utils import cloudinary_url
 
 auth = Blueprint('auth', __name__)
-
-# Add your cloudinary credentials here!
-Cloud.config( 
-  cloud_name = "abhishek", 
-  api_key = "628843668497854", 
-  api_secret = "7CWVUzLH3v8dROKrkHtRCSFIndQ" 
-)
 
 @auth.route('/signup', methods=['POST', 'GET'])
 def signup_post():
@@ -50,7 +42,7 @@ def signup_post():
         u.email = email
         u.image = thumbnail_url1
         u.set_password(password)
-        session['username'] = name
+        # session['username'] = name # Removed as Flask-Login handles user session
         db.session.add(u)
         db.session.commit()
 
@@ -84,5 +76,9 @@ def login_post():
 @login_required
 def logout():
     logout_user()
-    session.pop('name', None)
+    # Clear custom session variables that might have been set
+    session.pop('username', None) # For any legacy direct setting
+    session.pop('USERNAME', None) # For any legacy direct setting (uppercase)
+    session.pop('name', None)     # This was used for workspace name in views.py
+    session.pop('imageid', None)  # This was used for image id in views.py
     return render_template('/auth/login-register.html')
