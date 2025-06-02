@@ -9,9 +9,9 @@ from cloudinary.utils import cloudinary_url
 
 # Add your cloudinary credentials here!
 Cloud.config( 
-  cloud_name = "", 
-  api_key = "", 
-  api_secret = "" 
+  cloud_name = "abhishek", 
+  api_key = "628843668497854", 
+  api_secret = "7CWVUzLH3v8dROKrkHtRCSFIndQ" 
 )
 
 @views.route('/')

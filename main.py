@@ -15,9 +15,9 @@ socketio = SocketIO(app,logger=True, engineio_logger=True)
 
 # Add your cloudinary credentials here!
 Cloud.config( 
-  cloud_name = "", 
-  api_key = "", 
-  api_secret = "" 
+  cloud_name = "abhishek", 
+  api_key = "628843668497854", 
+  api_secret = "7CWVUzLH3v8dROKrkHtRCSFIndQ" 
 )
 
 @socketio.on('sendimage')
