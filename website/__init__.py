@@ -6,6 +6,7 @@ import random
 import string
 import cloudinary
 import os
+from datetime import datetime
 # init SQLAlchemy so we can use it later in our models
 db = SQLAlchemy()
 
@@ -75,6 +76,7 @@ class Chats(db.Model):
     wid = db.Column(db.Integer, index=True)
     channel_id = db.Column(db.Integer, index=True)
     image = db.Column(db.Integer)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow, index=True)
 
     def getJsonData(self):
         return {
@@ -83,6 +85,8 @@ class Chats(db.Model):
             "username": self.username,
             "wid": self.wid,
             "channel_id": self.channel_id,
+            "image": self.image,
+            "timestamp": self.timestamp.isoformat() if self.timestamp else None
         }
 
 

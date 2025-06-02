@@ -25,11 +25,12 @@ def sendimage(data):
 
         data_to_emit = {
             'id': chat_entry.id,
-            'message': chat_entry.message, # This is the Cloudinary URL
+            'message_content': chat_entry.message, # This is the Cloudinary URL
             'username': chat_entry.username,
             'wid': chat_entry.wid,
             'channel_id': chat_entry.channel_id,
-            'image': 1 # This is an image message
+            'image': 1, # This is an image message
+            'timestamp': chat_entry.timestamp.isoformat() if chat_entry.timestamp else None
         }
 
         workspace = Workspace.query.filter_by(id=chat_entry.wid).first()
@@ -226,12 +227,13 @@ def chat_msg(data):
     db.session.commit()
 
     emit_data = {
-        'msg': c.message, # Use c.message
+        'message_content': c.message,
         'username': c.username,
         'wid': c.wid,
         'channel_id': c.channel_id,
-        'image': c.image, # Use c.image
-        'id': c.id
+        'image': c.image,
+        'id': c.id,
+        'timestamp': c.timestamp.isoformat() if c.timestamp else None
     }
     print(c) # Original print
     join_room(workspace.name) # Use workspace.name from fetched workspace
@@ -250,7 +252,7 @@ def sendMessages(data):
         emit('receiveMessageJS', {"chats":[], "channel_id":data.get('channel_id'), "name":"Not Found"}) # Send empty/error response
         return
 
-    chats = Chats.query.filter_by(wid = data['wid'], channel_id = data['channel_id']).all()
+    chats = Chats.query.filter_by(wid = data['wid'], channel_id = data['channel_id']).order_by(Chats.timestamp.asc()).all()
     chatscount = len(chats) # Already correct
 
     # Simplified ch list structure as in getChannels
@@ -258,11 +260,12 @@ def sendMessages(data):
     for chat_obj in chats: # Changed c to chat_obj for clarity
         ch.append({
             'id': chat_obj.id,
-            'message': chat_obj.message,
+            'message_content': chat_obj.message,
             'username': chat_obj.username,
             'wid': chat_obj.wid,
             'channel_id': chat_obj.channel_id,
-            'image': chat_obj.image
+            'image': chat_obj.image,
+            'timestamp': chat_obj.timestamp.isoformat() if chat_obj.timestamp else None
         })
 
     join_room(workspace.name) # Use workspace.name
