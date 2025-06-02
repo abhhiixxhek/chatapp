@@ -86,7 +86,12 @@ class Chats(db.Model):
         }
 
 
+from dotenv import load_dotenv
+import os # Ensure os is imported here if not already at top-level for this specific usage
+
 def create_app():
+    load_dotenv() # Load environment variables from .env file
+
     current_direc = os.getcwd()
     databasePath = os.path.join(current_direc, "db.sqlite")
     print(databasePath)

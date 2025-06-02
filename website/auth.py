@@ -10,6 +10,9 @@ auth = Blueprint('auth', __name__)
 @auth.route('/signup', methods=['POST', 'GET'])
 def signup_post():
     if request.method == 'POST':
+        print(f"[SIGNUP] Received email: {request.form.get('email')}")
+        print(f"[SIGNUP] Received name: {request.form.get('name')}")
+        print(f"[SIGNUP] Received password (length): {len(request.form.get('password')) if request.form.get('password') else 'None'}")
         error = None
         thumbnail_url1 = None
         email = request.form.get('email')
@@ -27,14 +30,17 @@ def signup_post():
         
         if not password or not email or not name:
             error = "Invalid Credentials. Please try again."
+            print(f"[SIGNUP] Error condition: {error}")
             return render_template("/auth/login-register.html", error=error)
 
         if User.query.filter_by(name=name).count() == 1:
             error = "Name already taken. Please try again."
+            print(f"[SIGNUP] Error condition: {error}")
             return render_template("/auth/login-register.html", error=error)
 
         if User.query.filter_by(email=email).count() == 1:
             error = "Email already taken. Please try again."
+            print(f"[SIGNUP] Error condition: {error}")
             return render_template("/auth/login-register.html", error=error)
 
         u = User()
@@ -42,9 +48,21 @@ def signup_post():
         u.email = email
         u.image = thumbnail_url1
         u.set_password(password)
+
+        print(f"[SIGNUP] Creating User: name='{u.name}', email='{u.email}', image_url='{u.image}'")
+        print(f"[SIGNUP] Is password_hash set before commit? {'Yes' if u.password_hash else 'No'}")
+
         # session['username'] = name # Removed as Flask-Login handles user session
         db.session.add(u)
         db.session.commit()
+
+        print(f"[SIGNUP] User {u.name} committed to database with ID: {u.id}")
+        # Verify user from DB immediately
+        committed_user = User.query.filter_by(email=u.email).first()
+        if committed_user:
+            print(f"[SIGNUP] Verified user from DB: id={committed_user.id}, name='{committed_user.name}', hash='{committed_user.password_hash[:20]}...'")
+        else:
+            print(f"[SIGNUP] CRITICAL: User not found in DB immediately after commit with email {u.email}!")
 
         return render_template("/auth/login-register.html")
     else:
@@ -53,6 +71,8 @@ def signup_post():
 
 @auth.route('/login', methods=['POST'])
 def login_post():
+    print(f"[LOGIN] Attempting login for name: {request.form.get('name')}")
+    print(f"[LOGIN] Password provided (length): {len(request.form.get('password')) if request.form.get('password') else 'None'}")
     error = None
     name = request.form.get('name')
     password = request.form.get('password')
@@ -60,12 +80,26 @@ def login_post():
 
     if not name or not password:
         error = "Missing Data"
+        print(f"[LOGIN] Error condition: {error}")
         return render_template("/auth/login-register.html", error=error)
 
     user = User.query.filter_by(name=name).first()
+
+    if user:
+        print(f"[LOGIN] User found in DB: id={user.id}, name='{user.name}', hash='{user.password_hash[:20]}...'")
+    else:
+        print(f"[LOGIN] User '{name}' NOT found in DB.")
+
     if user is None or not user.check_password(password):
         error = "Please check your login details and try again."
+        if user: # Implies password check failed
+             print(f"[LOGIN] Password check FAILED for user '{name}'.")
+        # If user is None, the "NOT found in DB" message is already printed
+        print(f"[LOGIN] Error condition: {error}")
         return render_template("/auth/login-register.html", error=error)
+
+    # This part is reached only if user exists and password check was successful
+    print(f"[LOGIN] Password check successful for user '{name}'.")
 
     session.pop('username', None)
     login_user(user, remember=remember)
